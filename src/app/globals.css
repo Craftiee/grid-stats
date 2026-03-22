@@ -1,0 +1,483 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================================
+   CRITICAL STYLES (from head.php)
+   ============================================================================ */
+
+/* CSS Reset */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+button { background: transparent; border: none; cursor: pointer; font: inherit; color: inherit; }
+select { background-color: #050505; color: #e2e8f0; border: 1px solid #27272a; }
+a { color: inherit; text-decoration: none; }
+img { max-width: 100%; display: block; }
+
+/* Force Titillium Web everywhere */
+html, body, *, *::before, *::after {
+    font-family: 'Titillium Web', system-ui, -apple-system, sans-serif !important;
+}
+
+/* Force scrollbar always visible */
+html {
+    overflow-y: scroll;
+    background-color: #050505 !important;
+    color: #e2e8f0 !important;
+}
+
+/* Body */
+body {
+    background-color: #050505 !important;
+    color: #e2e8f0 !important;
+    line-height: 1.5;
+}
+
+/* Main Glass Panel */
+.glass-panel {
+    background-color: #18181b !important;
+    border: 1px solid #27272a !important;
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.1) !important;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #050505; }
+::-webkit-scrollbar-thumb { background: #dc2626; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #ef4444; }
+.custom-scroll::-webkit-scrollbar-track { background: transparent; }
+
+/* Loader */
+.loader {
+    border: 3px solid #27272a !important;
+    border-top: 3px solid #ef4444 !important;
+    border-radius: 50% !important;
+    width: 20px !important;
+    height: 20px !important;
+    animation: spin 1s linear infinite !important;
+}
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+/* Stat Card */
+.stat-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+    border: 1px solid #27272a;
+}
+
+.team-color-bar {
+    height: 4px;
+    border-radius: 2px;
+}
+
+/* ============================================================================
+   NAVBAR STYLES (from navbar-styles.php)
+   ============================================================================ */
+
+/* Logo STATS text */
+.stats-text {
+    color: #ffffff !important;
+    -webkit-text-stroke: 0 !important;
+}
+
+/* Force consistent nav height */
+nav {
+    height: 96px;
+    min-height: 96px;
+    max-height: 96px;
+}
+
+nav > .container > div {
+    height: 96px;
+}
+
+/* Nav Buttons */
+.nav-btn {
+    color: #a1a1aa !important;
+    position: relative;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+.nav-btn:hover {
+    color: #e2e8f0 !important;
+}
+.nav-btn.active {
+    background-color: #FF1801 !important;
+    color: #ffffff !important;
+    border-radius: 4px;
+}
+
+/* Settings Dropdown */
+#settings-dropdown {
+    background-color: #18181b !important;
+    border: 1px solid #27272a !important;
+    color: #e2e8f0 !important;
+}
+#settings-dropdown button:hover, #settings-dropdown a:hover {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Navbar container */
+.nav-container {
+    background-color: #18181b !important;
+}
+
+/* Motorsport Dropdown */
+#motorsport-btn:hover {
+    border-color: #52525b !important;
+}
+
+#motorsport-btn.active {
+    background-color: rgba(220, 38, 38, 0.15) !important;
+    border-color: #dc2626 !important;
+}
+
+.motorsport-option:hover {
+    background-color: rgba(220, 38, 38, 0.1) !important;
+}
+
+/* ============================================================================
+   F1-STATS MASTER STYLESHEET (from Styles.css)
+   ============================================================================ */
+
+:root {
+    /* BACKGROUNDS */
+    --bg-body: #050505;
+    --bg-texture: url("https://www.transparenttextures.com/patterns/carbon-fibre.png");
+    --bg-nav: #18181b;
+    --bg-panel: #18181b;
+    --bg-panel-alt: #27272a;
+    --bg-card: rgba(24, 24, 27, 0.8);
+    --bg-hover: rgba(255, 255, 255, 0.05);
+
+    /* BORDERS */
+    --border-color: #27272a;
+    --border-light: #3f3f46;
+
+    /* TEXT */
+    --text-highlight: #ffffff;
+    --text-primary: #e2e8f0;
+    --text-secondary: #a1a1aa;
+    --text-muted: #71717a;
+    --text-faint: #52525b;
+
+    /* ACCENT (F1 Red) */
+    --accent-red: #dc2626;
+    --accent-red-light: #ef4444;
+    --accent-red-dark: #b91c1c;
+
+    /* F1 TEAM COLORS */
+    --team-redbull: #3671C6;
+    --team-ferrari: #E80020;
+    --team-mclaren: #FF8000;
+    --team-mercedes: #27F4D2;
+    --team-aston: #229971;
+    --team-alpine: #0093CC;
+    --team-williams: #64C4FF;
+    --team-rb: #6692FF;
+    --team-sauber: #52E252;
+    --team-haas: #B6BABD;
+}
+
+body {
+    background-color: var(--bg-body) !important;
+    background-image: var(--bg-texture) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Reusable text color classes */
+.text-highlight { color: var(--text-highlight) !important; }
+.text-secondary-custom { color: var(--text-secondary) !important; }
+.text-muted-custom { color: var(--text-muted) !important; }
+.text-faint { color: var(--text-faint) !important; }
+
+/* Navigation */
+#main-nav {
+    background-color: var(--bg-nav) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+/* Logo */
+#logo-text {
+    color: var(--text-highlight) !important;
+}
+
+.logo-underline {
+    background-color: var(--accent-red) !important;
+}
+
+/* Panels */
+#glass-panel {
+    background-color: var(--bg-panel) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+#left-panel {
+    background-color: var(--bg-panel) !important;
+    border-color: var(--border-color) !important;
+}
+
+#center-panel,
+#center-display {
+    background-color: var(--bg-panel) !important;
+}
+
+#right-panel {
+    background-color: var(--bg-panel) !important;
+    border-color: var(--border-color) !important;
+}
+
+#right-header {
+    background-color: var(--bg-panel) !important;
+    border-color: var(--border-color) !important;
+}
+
+#accordion-container {
+    background-color: var(--bg-panel) !important;
+}
+
+/* Hero Card */
+.hero-card {
+    background-color: var(--bg-panel-alt) !important;
+    border-color: var(--border-color) !important;
+}
+
+.track-map {
+    filter: invert(1) !important;
+    opacity: 0.5 !important;
+}
+
+.hero-gradient {
+    background: linear-gradient(to top, var(--bg-panel), transparent) !important;
+}
+
+.hero-up-next {
+    color: var(--accent-red-light) !important;
+}
+
+.hero-race-name {
+    color: var(--text-highlight) !important;
+}
+
+.time-border-red {
+    border-color: var(--accent-red) !important;
+}
+
+.time-border-default {
+    border-color: var(--border-color) !important;
+}
+
+.time-label {
+    color: var(--text-muted) !important;
+}
+
+.time-value {
+    color: var(--text-highlight) !important;
+}
+
+.time-value-secondary {
+    color: var(--text-secondary) !important;
+}
+
+#countdown-timer {
+    color: var(--text-highlight) !important;
+}
+
+.countdown-label {
+    color: var(--text-muted) !important;
+}
+
+/* Race Calendar */
+.calendar-section {
+    background-color: var(--bg-panel) !important;
+}
+
+.calendar-title {
+    color: var(--text-muted) !important;
+    background-color: var(--bg-panel) !important;
+}
+
+.race-item {
+    background-color: var(--bg-panel) !important;
+    border-color: var(--border-color) !important;
+}
+
+.race-item-next {
+    background-color: var(--bg-panel-alt) !important;
+    border-color: var(--accent-red) !important;
+}
+
+.race-month {
+    color: var(--text-secondary) !important;
+}
+
+.race-day {
+    color: var(--text-highlight) !important;
+}
+
+.race-name {
+    color: var(--text-highlight) !important;
+}
+
+.circuit-name {
+    color: var(--text-muted) !important;
+}
+
+/* Driver Accordion */
+.driver-row {
+    background-color: var(--bg-panel) !important;
+    border-color: var(--border-color) !important;
+}
+
+.driver-btn {
+    background-color: var(--bg-panel) !important;
+    transition: background-color 0.2s ease;
+    cursor: pointer;
+}
+
+.driver-btn:hover {
+    background-color: var(--bg-hover) !important;
+}
+
+.driver-position {
+    color: var(--text-muted) !important;
+    transition: color 0.2s ease;
+}
+
+.driver-btn:hover .driver-position {
+    color: var(--accent-red-light) !important;
+}
+
+.driver-name {
+    color: var(--text-highlight) !important;
+}
+
+.driver-team {
+    color: var(--text-muted) !important;
+}
+
+.driver-points {
+    color: var(--accent-red-light) !important;
+}
+
+.driver-points-label {
+    color: var(--text-muted) !important;
+}
+
+/* Driver Expanded Panel */
+.driver-panel {
+    background-color: var(--bg-panel) !important;
+    border-color: var(--border-color) !important;
+}
+
+.driver-number-bg {
+    opacity: 0.15 !important;
+}
+
+.driver-photo-gradient {
+    background: linear-gradient(to top, var(--bg-panel), var(--bg-panel) 20%, transparent) !important;
+}
+
+.stat-label {
+    color: var(--text-secondary) !important;
+}
+
+.stat-value {
+    color: var(--text-highlight) !important;
+}
+
+/* Form Elements */
+#season-select {
+    background-color: var(--bg-body) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+#season-select:focus {
+    outline: none !important;
+    border-color: var(--accent-red) !important;
+}
+
+#season-select option {
+    background-color: var(--bg-panel) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Settings Dropdown (full) */
+#settings-dropdown a,
+#settings-dropdown button {
+    color: var(--text-primary) !important;
+}
+
+#settings-dropdown a:hover,
+#settings-dropdown button:hover {
+    background-color: var(--bg-hover) !important;
+}
+
+#dropdown-divider {
+    background-color: var(--border-color) !important;
+}
+
+/* Utilities */
+#loading-text {
+    color: var(--text-secondary) !important;
+}
+
+.live-dot {
+    background-color: var(--accent-red) !important;
+}
+
+.live-dot-ping {
+    background-color: var(--accent-red-light) !important;
+}
+
+.error-text {
+    color: var(--accent-red-light) !important;
+}
+
+/* ============================================================================
+   DASHBOARD PAGE-SPECIFIC STYLES (from index.php)
+   ============================================================================ */
+
+.driver-standings-panel { background-color: #15151a !important; }
+.driver-standings-header { background-color: #15151a !important; }
+.driver-card { background-color: #1a1a1f !important; }
+.constructor-panel { background-color: #15151a !important; }
+.constructor-header { background-color: #15151a !important; }
+.constructor-card { background-color: #1a1a1f !important; }
+.center-panel { background-color: #18181b !important; }
+
+#season-select {
+    position: relative;
+    z-index: 100;
+    overflow-y: auto;
+    background-color: #000000;
+    color: #ffffff;
+}
+
+#season-select option {
+    padding: 8px;
+    background-color: #000000;
+    color: #ffffff;
+}
+
+#season-select option:hover,
+#season-select option:focus,
+#season-select option:checked {
+    background-color: #dc2626;
+    color: #ffffff;
+}
+
+/* f1-text class (used in app.js for race/driver names) */
+.f1-text {
+    font-family: 'Titillium Web', sans-serif;
+    font-weight: 700;
+    color: #e2e8f0;
+}
+
+/* Accordion animation */
+.accordion-content {
+    transition: all 0.3s ease;
+}
+
+.expand-arrow {
+    transition: transform 0.3s ease;
+}

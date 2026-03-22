@@ -1,0 +1,538 @@
+// GRIDSTATS - Formula 1 Statistics Platform
+// Prisma Schema - PostgreSQL
+// ============================================================
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── CORE REFERENCE TABLES ───────────────────────────────────
+
+model Nationality {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique @db.VarChar(50)
+  countryCode String   @db.Char(2)
+  demonym     String?  @db.VarChar(50)
+  createdAt   DateTime @default(now())
+
+  drivers      Driver[]
+  constructors Constructor[]
+  users        User[]
+
+  @@index([countryCode])
+  @@map("nationalities")
+}
+
+model Constructor {
+  id             Int      @id @default(autoincrement())
+  constructorId  String   @unique @db.VarChar(50)
+  name           String   @db.VarChar(100)
+  fullName       String?  @db.VarChar(200)
+  nationalityId  Int?
+  colorPrimary   String   @default("#FFFFFF") @db.VarChar(7)
+  colorSecondary String?  @db.VarChar(7)
+  logoUrl        String?  @db.VarChar(500)
+  wikipediaUrl   String?  @db.VarChar(500)
+  active         Boolean  @default(true)
+
+  // Team detail fields (previously hardcoded in teams.php)
+  base               String?  @db.VarChar(200)
+  teamPrincipal      String?  @db.VarChar(100)
+  chassis            String?  @db.VarChar(50)
+  powerUnit          String?  @db.VarChar(100)
+  firstEntry         Int?
+  worldChampionships Int      @default(0)
+  websiteUrl         String?  @db.VarChar(500)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  nationality           Nationality?           @relation(fields: [nationalityId], references: [id])
+  seasonConstructors    SeasonConstructor[]
+  seasonEntries         SeasonEntry[]
+  raceResults           RaceResult[]
+  qualifyingResults     QualifyingResult[]
+  sprintResults         SprintResult[]
+  driverStandings       DriverStanding[]
+  constructorStandings  ConstructorStanding[]
+  championSeasons       Season[]               @relation("ChampionConstructor")
+  userFavorites         User[]                 @relation("FavoriteConstructor")
+
+  @@index([constructorId])
+  @@index([active])
+  @@map("constructors")
+}
+
+model Driver {
+  id              Int       @id @default(autoincrement())
+  driverId        String    @unique @db.VarChar(50)
+  code            String?   @db.Char(3)
+  permanentNumber Int?
+  firstName       String    @db.VarChar(50)
+  lastName        String    @db.VarChar(50)
+  dateOfBirth     DateTime? @db.Date
+  nationalityId   Int?
+  photoUrl        String?   @db.VarChar(500)
+  wikipediaUrl    String?   @db.VarChar(500)
+  active          Boolean   @default(true)
+  debutYear       Int?
+  lastRaceYear    Int?
+  racingDecades   Int[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  nationality       Nationality?       @relation(fields: [nationalityId], references: [id])
+  seasonEntries     SeasonEntry[]
+  raceResults       RaceResult[]
+  qualifyingResults QualifyingResult[]
+  sprintResults     SprintResult[]
+  driverStandings   DriverStanding[]
+  careerStats       DriverCareerStats?
+  championSeasons   Season[]           @relation("ChampionDriver")
+  userFavorites     User[]             @relation("FavoriteDriver")
+
+  @@index([driverId])
+  @@index([code])
+  @@index([active])
+  @@index([lastName])
+  @@map("drivers")
+}
+
+model Circuit {
+  id              Int       @id @default(autoincrement())
+  circuitId       String    @unique @db.VarChar(50)
+  name            String    @db.VarChar(100)
+  locality        String?   @db.VarChar(100)
+  country         String?   @db.VarChar(100)
+  latitude        Decimal?  @db.Decimal(10, 6)
+  longitude       Decimal?  @db.Decimal(10, 6)
+  altitude        Int?
+  lengthKm        Decimal?  @db.Decimal(5, 3)
+  turns           Int?
+  lapRecordTime   String?   @db.VarChar(20)
+  lapRecordHolder String?   @db.VarChar(100)
+  lapRecordYear   Int?
+  timezoneOffset  Int       @default(0)
+  timezoneAbbr    String?   @db.VarChar(10)
+  mapImageUrl     String?   @db.VarChar(500)
+  wikipediaUrl    String?   @db.VarChar(500)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  races Race[]
+
+  @@index([circuitId])
+  @@index([country])
+  @@map("circuits")
+}
+
+// ─── SEASON & JUNCTION TABLES ────────────────────────────────
+
+model Season {
+  year                  Int      @id
+  totalRounds           Int?
+  championDriverId      Int?
+  championConstructorId Int?
+  wikipediaUrl          String?  @db.VarChar(500)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  championDriver       Driver?              @relation("ChampionDriver", fields: [championDriverId], references: [id])
+  championConstructor  Constructor?         @relation("ChampionConstructor", fields: [championConstructorId], references: [id])
+  races                Race[]
+  seasonConstructors   SeasonConstructor[]
+  seasonEntries        SeasonEntry[]
+  driverStandings      DriverStanding[]
+  constructorStandings ConstructorStanding[]
+
+  @@map("seasons")
+}
+
+model SeasonConstructor {
+  id            Int      @id @default(autoincrement())
+  seasonYear    Int
+  constructorId String   @db.VarChar(50)
+  displayName   String?  @db.VarChar(200)
+  colorOverride String?  @db.VarChar(7)
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  season      Season      @relation(fields: [seasonYear], references: [year], onDelete: Cascade)
+  constructor Constructor @relation(fields: [constructorId], references: [constructorId])
+
+  @@unique([seasonYear, constructorId])
+  @@index([seasonYear])
+  @@map("season_constructors")
+}
+
+model SeasonEntry {
+  id            Int      @id @default(autoincrement())
+  seasonYear    Int
+  driverId      String   @db.VarChar(50)
+  constructorId String   @db.VarChar(50)
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  season      Season      @relation(fields: [seasonYear], references: [year], onDelete: Cascade)
+  driver      Driver      @relation(fields: [driverId], references: [driverId])
+  constructor Constructor @relation(fields: [constructorId], references: [constructorId])
+
+  @@unique([seasonYear, driverId])
+  @@index([seasonYear])
+  @@index([driverId])
+  @@index([constructorId])
+  @@map("season_entries")
+}
+
+// ─── RACE TABLES ─────────────────────────────────────────────
+
+model Race {
+  id             Int       @id @default(autoincrement())
+  seasonYear     Int
+  round          Int
+  name           String    @db.VarChar(100)
+  circuitId      Int?
+  raceDate       DateTime? @db.Date
+  raceTime       DateTime? @db.Time()
+  sprintDate     DateTime? @db.Date
+  sprintTime     DateTime? @db.Time()
+  qualifyingDate DateTime? @db.Date
+  qualifyingTime DateTime? @db.Time()
+  fp1Date        DateTime? @db.Date
+  fp1Time        DateTime? @db.Time()
+  fp2Date        DateTime? @db.Date
+  fp2Time        DateTime? @db.Time()
+  fp3Date        DateTime? @db.Date
+  fp3Time        DateTime? @db.Time()
+  wikipediaUrl   String?   @db.VarChar(500)
+  completed      Boolean   @default(false)
+  cancelled      Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  season               Season               @relation(fields: [seasonYear], references: [year], onDelete: Cascade)
+  circuit              Circuit?             @relation(fields: [circuitId], references: [id])
+  raceResults          RaceResult[]
+  qualifyingResults    QualifyingResult[]
+  sprintResults        SprintResult[]
+  driverStandings      DriverStanding[]
+  constructorStandings ConstructorStanding[]
+  firstRaceDrivers     DriverCareerStats[]  @relation("FirstRace")
+  lastRaceDrivers      DriverCareerStats[]  @relation("LastRace")
+  firstWinDrivers      DriverCareerStats[]  @relation("FirstWin")
+
+  @@unique([seasonYear, round])
+  @@index([raceDate])
+  @@index([completed])
+  @@map("races")
+}
+
+// ─── RESULTS TABLES ──────────────────────────────────────────
+
+model RaceResult {
+  id             Int      @id @default(autoincrement())
+  raceId         Int
+  driverId       Int
+  constructorId  Int
+  gridPosition   Int?
+  position       Int?
+  positionText   String?  @db.VarChar(10)
+  points         Decimal  @default(0) @db.Decimal(5, 2)
+  lapsCompleted  Int      @default(0)
+  status         String?  @db.VarChar(100)
+  fastestLap     Boolean  @default(false)
+  fastestLapTime String?  @db.VarChar(20)
+  fastestLapRank Int?
+  createdAt      DateTime @default(now())
+
+  race        Race        @relation(fields: [raceId], references: [id], onDelete: Cascade)
+  driver      Driver      @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  constructor Constructor @relation(fields: [constructorId], references: [id], onDelete: Cascade)
+
+  @@unique([raceId, driverId])
+  @@index([position])
+  @@index([points])
+  @@map("race_results")
+}
+
+model QualifyingResult {
+  id            Int      @id @default(autoincrement())
+  raceId        Int
+  driverId      Int
+  constructorId Int
+  position      Int?
+  q1Time        String?  @db.VarChar(20)
+  q2Time        String?  @db.VarChar(20)
+  q3Time        String?  @db.VarChar(20)
+  createdAt     DateTime @default(now())
+
+  race        Race        @relation(fields: [raceId], references: [id], onDelete: Cascade)
+  driver      Driver      @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  constructor Constructor @relation(fields: [constructorId], references: [id], onDelete: Cascade)
+
+  @@unique([raceId, driverId])
+  @@index([position])
+  @@map("qualifying_results")
+}
+
+model SprintResult {
+  id            Int      @id @default(autoincrement())
+  raceId        Int
+  driverId      Int
+  constructorId Int
+  gridPosition  Int?
+  position      Int?
+  positionText  String?  @db.VarChar(10)
+  points        Decimal  @default(0) @db.Decimal(5, 2)
+  lapsCompleted Int      @default(0)
+  status        String?  @db.VarChar(100)
+  createdAt     DateTime @default(now())
+
+  race        Race        @relation(fields: [raceId], references: [id], onDelete: Cascade)
+  driver      Driver      @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  constructor Constructor @relation(fields: [constructorId], references: [id], onDelete: Cascade)
+
+  @@unique([raceId, driverId])
+  @@map("sprint_results")
+}
+
+// ─── STANDINGS TABLES ────────────────────────────────────────
+
+model DriverStanding {
+  id            Int      @id @default(autoincrement())
+  seasonYear    Int
+  raceId        Int?
+  driverId      Int
+  constructorId Int
+  position      Int
+  points        Decimal  @default(0) @db.Decimal(6, 2)
+  wins          Int      @default(0)
+  podiums       Int      @default(0)
+  poles         Int      @default(0)
+  fastestLaps   Int      @default(0)
+  dnfs          Int      @default(0)
+  racesEntered  Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  season      Season      @relation(fields: [seasonYear], references: [year], onDelete: Cascade)
+  race        Race?       @relation(fields: [raceId], references: [id], onDelete: Cascade)
+  driver      Driver      @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  constructor Constructor @relation(fields: [constructorId], references: [id], onDelete: Cascade)
+
+  @@unique([seasonYear, raceId, driverId])
+  @@index([seasonYear, position])
+  @@index([points(sort: Desc)])
+  @@map("driver_standings")
+}
+
+model ConstructorStanding {
+  id            Int      @id @default(autoincrement())
+  seasonYear    Int
+  raceId        Int?
+  constructorId Int
+  position      Int
+  points        Decimal  @default(0) @db.Decimal(6, 2)
+  wins          Int      @default(0)
+  podiums       Int      @default(0)
+  poles         Int      @default(0)
+  fastestLaps   Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  season      Season      @relation(fields: [seasonYear], references: [year], onDelete: Cascade)
+  race        Race?       @relation(fields: [raceId], references: [id], onDelete: Cascade)
+  constructor Constructor @relation(fields: [constructorId], references: [id], onDelete: Cascade)
+
+  @@unique([seasonYear, raceId, constructorId])
+  @@index([seasonYear, position])
+  @@map("constructor_standings")
+}
+
+// ─── CAREER STATS ────────────────────────────────────────────
+
+model DriverCareerStats {
+  driverId      Int      @id
+  seasonsActive Int      @default(0)
+  racesEntered  Int      @default(0)
+  raceStarts    Int      @default(0)
+  championships Int      @default(0)
+  wins          Int      @default(0)
+  podiums       Int      @default(0)
+  poles         Int      @default(0)
+  fastestLaps   Int      @default(0)
+  pointsTotal   Decimal  @default(0) @db.Decimal(8, 2)
+  firstRaceId   Int?
+  lastRaceId    Int?
+  firstWinRaceId Int?
+  dnfs          Int      @default(0)
+  bestFinish    Int?
+  bestGrid      Int?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  driver   Driver @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  firstRace Race?  @relation("FirstRace", fields: [firstRaceId], references: [id], onDelete: SetNull)
+  lastRace  Race?  @relation("LastRace", fields: [lastRaceId], references: [id], onDelete: SetNull)
+  firstWin  Race?  @relation("FirstWin", fields: [firstWinRaceId], references: [id], onDelete: SetNull)
+
+  @@map("driver_career_stats")
+}
+
+// ─── USER & COMMUNITY ────────────────────────────────────────
+
+model User {
+  id                    Int       @id @default(autoincrement())
+  username              String    @unique @db.VarChar(50)
+  email                 String    @unique @db.VarChar(255)
+  passwordHash          String    @db.VarChar(255)
+  displayName           String?   @db.VarChar(100)
+  avatarUrl             String?   @db.VarChar(500)
+  favoriteDriverId      Int?
+  favoriteConstructorId Int?
+  nationalityId         Int?
+  bio                   String?
+  role                  UserRole  @default(USER)
+  emailVerified         Boolean   @default(false)
+  active                Boolean   @default(true)
+  lastLogin             DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  favoriteDriver      Driver?       @relation("FavoriteDriver", fields: [favoriteDriverId], references: [id])
+  favoriteConstructor Constructor?  @relation("FavoriteConstructor", fields: [favoriteConstructorId], references: [id])
+  nationality         Nationality?  @relation(fields: [nationalityId], references: [id])
+  threads             ForumThread[] @relation("ThreadAuthor")
+  lastRepliedThreads  ForumThread[] @relation("LastReplier")
+  replies             ForumReply[]
+
+  @@index([username])
+  @@index([email])
+  @@index([role])
+  @@map("users")
+}
+
+enum UserRole {
+  USER
+  MODERATOR
+  ADMIN
+}
+
+model ForumCategory {
+  id           Int      @id @default(autoincrement())
+  name         String   @db.VarChar(100)
+  slug         String   @unique @db.VarChar(100)
+  description  String?
+  displayOrder Int      @default(0)
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  threads ForumThread[]
+
+  @@index([slug])
+  @@index([displayOrder])
+  @@map("forum_categories")
+}
+
+model ForumThread {
+  id              Int       @id @default(autoincrement())
+  categoryId      Int
+  userId          Int?
+  title           String    @db.VarChar(255)
+  slug            String    @db.VarChar(255)
+  content         String
+  views           Int       @default(0)
+  repliesCount    Int       @default(0)
+  pinned          Boolean   @default(false)
+  locked          Boolean   @default(false)
+  lastReplyAt     DateTime?
+  lastReplyUserId Int?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  category    ForumCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  user        User?         @relation("ThreadAuthor", fields: [userId], references: [id], onDelete: SetNull)
+  lastReplier User?         @relation("LastReplier", fields: [lastReplyUserId], references: [id])
+  replies     ForumReply[]
+
+  @@index([categoryId])
+  @@index([pinned])
+  @@index([lastReplyAt])
+  @@map("forum_threads")
+}
+
+model ForumReply {
+  id        Int      @id @default(autoincrement())
+  threadId  Int
+  userId    Int?
+  content   String
+  edited    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  thread ForumThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  user   User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([threadId])
+  @@index([createdAt])
+  @@map("forum_replies")
+}
+
+// ─── SYNC METADATA ───────────────────────────────────────────
+
+model SyncLog {
+  id            Int        @id @default(autoincrement())
+  dataType      String     @db.VarChar(50)
+  seasonYear    Int?
+  lastSynced    DateTime   @default(now())
+  recordsSynced Int        @default(0)
+  status        SyncStatus @default(SUCCESS)
+  errorMessage  String?
+
+  @@index([dataType])
+  @@index([seasonYear])
+  @@index([lastSynced])
+  @@map("sync_log")
+}
+
+enum SyncStatus {
+  SUCCESS
+  PARTIAL
+  FAILED
+}
+
+// ─── RATE LIMITING ────────────────────────────────────────
+
+model RateLimitEntry {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique @db.VarChar(255)
+  count     Int      @default(1)
+  resetAt   DateTime
+  createdAt DateTime @default(now())
+
+  @@index([resetAt])
+  @@map("rate_limit_entries")
+}
+
+// ─── NEWS ARTICLES ─────────────────────────────────────────
+
+model NewsArticle {
+  id            Int      @id @default(autoincrement())
+  url           String   @unique @db.VarChar(2000)
+  title         String   @db.VarChar(500)
+  imageUrl      String?  @db.VarChar(2000)
+  sourceName    String   @db.VarChar(200)
+  sourceFavicon String?  @db.VarChar(500)
+  publishedAt   DateTime
+  scrapedAt     DateTime @default(now())
+
+  @@index([publishedAt(sort: Desc)])
+  @@map("news_articles")
+}

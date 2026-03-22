@@ -1,0 +1,617 @@
+/* ============================================================================
+   F1-STATS MASTER STYLESHEET
+   ============================================================================
+   
+   This file contains ALL styling for the F1-Stats application.
+   Dark theme is the standard/only theme.
+   
+   FILE STRUCTURE:
+   - index.php  : HTML structure only (no inline styles)
+   - app.js     : JavaScript logic only (uses CSS classes, no inline styles)
+   - styles.css : ALL styling lives here (this file)
+   
+   ============================================================================
+   TABLE OF CONTENTS
+   ============================================================================
+   
+   1. COLOR VARIABLES
+   2. BASE / GLOBAL STYLES
+   3. NAVIGATION BAR
+   4. LOGO
+   5. MAIN PANEL LAYOUT
+   6. LEFT PANEL (Constructors)
+   7. CENTER PANEL (Schedule/Hero)
+   8. RIGHT PANEL (Driver Standings)
+   9. HERO CARD
+   10. RACE CALENDAR
+   11. DRIVER ACCORDION
+   12. DRIVER EXPANDED PANEL
+   13. FORM ELEMENTS
+   14. SETTINGS DROPDOWN
+   15. UTILITIES & ANIMATIONS
+   16. SCROLLBARS
+   17. FUTURE: THEME TOGGLE (Commented Out)
+   
+   ============================================================================ */
+
+
+/* ============================================================================
+   1. COLOR VARIABLES
+   ============================================================================
+   
+   All colors defined here for easy editing.
+   Change a color here = changes everywhere.
+   
+   ============================================================================ */
+
+:root {
+    /* -------------------- BACKGROUNDS -------------------- */
+    --bg-body: #050505;                         /* Page background (near black) */
+    --bg-texture: url("https://www.transparenttextures.com/patterns/carbon-fibre.png");
+    --bg-nav: #18181b;                          /* Nav bar */
+    --bg-panel: #18181b;                        /* All panels */
+    --bg-panel-alt: #27272a;                    /* Highlighted/alternate areas */
+    --bg-card: rgba(24, 24, 27, 0.8);           /* Transparent card overlays */
+    --bg-hover: rgba(255, 255, 255, 0.05);      /* Hover states */
+    
+    /* -------------------- BORDERS -------------------- */
+    --border-color: #27272a;                    /* Standard borders */
+    --border-light: #3f3f46;                    /* Lighter borders */
+    
+    /* -------------------- TEXT -------------------- */
+    --text-highlight: #ffffff;                  /* Brightest - headings */
+    --text-primary: #e2e8f0;                    /* Main text */
+    --text-secondary: #a1a1aa;                  /* Secondary text */
+    --text-muted: #71717a;                      /* Muted labels */
+    --text-faint: #52525b;                      /* Very faint */
+    
+    /* -------------------- ACCENT (F1 Red) -------------------- */
+    --accent-red: #dc2626;                      /* Primary red */
+    --accent-red-light: #ef4444;                /* Light red */
+    --accent-red-dark: #b91c1c;                 /* Dark red */
+    
+    /* -------------------- F1 TEAM COLORS -------------------- */
+    --team-redbull: #3671C6;
+    --team-ferrari: #E80020;
+    --team-mclaren: #FF8000;
+    --team-mercedes: #27F4D2;
+    --team-aston: #229971;
+    --team-alpine: #0093CC;
+    --team-williams: #64C4FF;
+    --team-rb: #6692FF;
+    --team-sauber: #52E252;
+    --team-haas: #B6BABD;
+}
+
+
+/* ============================================================================
+   2. BASE / GLOBAL STYLES
+   ============================================================================ */
+
+body {
+    background-color: var(--bg-body) !important;
+    background-image: var(--bg-texture) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Reusable text color classes */
+.text-highlight { color: var(--text-highlight) !important; }
+.text-primary { color: var(--text-primary) !important; }
+.text-secondary { color: var(--text-secondary) !important; }
+.text-muted { color: var(--text-muted) !important; }
+.text-faint { color: var(--text-faint) !important; }
+
+
+/* ============================================================================
+   3. NAVIGATION BAR
+   ============================================================================ */
+
+#main-nav {
+    background-color: var(--bg-nav) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+/* Nav buttons */
+.nav-btn {
+    color: var(--text-secondary) !important;
+    transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.nav-btn:hover {
+    color: var(--text-primary) !important;
+    background-color: var(--bg-hover) !important;
+}
+
+/* Active nav button (Dashboard) */
+#dashboard-btn {
+    background-color: var(--bg-panel) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
+}
+
+/* Divider between nav groups */
+#nav-divider {
+    background-color: var(--border-color) !important;
+}
+
+
+/* ============================================================================
+   4. LOGO
+   ============================================================================ */
+
+/* "STATS" text - white for dark theme */
+#logo-text {
+    color: var(--text-highlight) !important;
+}
+
+/* Red underline */
+.logo-underline {
+    background-color: var(--accent-red) !important;
+}
+
+
+/* ============================================================================
+   5. MAIN PANEL LAYOUT
+   ============================================================================ */
+
+/* Outer container holding all three panels */
+#glass-panel {
+    background-color: var(--bg-panel) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+
+/* ============================================================================
+   6. LEFT PANEL (Constructors Sidebar)
+   ============================================================================ */
+
+#left-panel {
+    background-color: var(--bg-panel) !important;
+    border-color: var(--border-color) !important;
+}
+
+/* "Top Constructors" heading */
+#constructors-title {
+    color: var(--text-secondary) !important;
+}
+
+/* Team names */
+.team-name {
+    color: var(--text-primary) !important;
+}
+
+/* Team position (P1, P2) */
+.team-position {
+    color: var(--text-secondary) !important;
+}
+
+/* Team border accent */
+.team-border-default {
+    border-color: var(--border-color) !important;
+}
+
+
+/* ============================================================================
+   7. CENTER PANEL (Schedule & Hero)
+   ============================================================================ */
+
+#center-panel,
+#center-display {
+    background-color: var(--bg-panel) !important;
+}
+
+
+/* ============================================================================
+   8. RIGHT PANEL (Driver Standings)
+   ============================================================================ */
+
+#right-panel {
+    background-color: var(--bg-panel) !important;
+    border-color: var(--border-color) !important;
+}
+
+#right-header {
+    background-color: var(--bg-panel) !important;
+    border-color: var(--border-color) !important;
+}
+
+/* "Live Standings" title */
+#standings-title {
+    color: var(--text-primary) !important;
+}
+
+#accordion-container {
+    background-color: var(--bg-panel) !important;
+}
+
+
+/* ============================================================================
+   9. HERO CARD (Next Race Display)
+   ============================================================================ */
+
+.hero-card {
+    background-color: var(--bg-panel-alt) !important;
+    border-color: var(--border-color) !important;
+}
+
+/* Track map image */
+.track-map {
+    filter: invert(1) !important;
+    opacity: 0.5 !important;
+}
+
+/* Gradient overlay */
+.hero-gradient {
+    background: linear-gradient(to top, var(--bg-panel), transparent) !important;
+}
+
+/* "Up Next" label */
+.hero-up-next {
+    color: var(--accent-red-light) !important;
+}
+
+/* Race name */
+.hero-race-name {
+    color: var(--text-highlight) !important;
+}
+
+/* Time section border */
+.time-border-red {
+    border-color: var(--accent-red) !important;
+}
+
+.time-border-default {
+    border-color: var(--border-color) !important;
+}
+
+/* Time labels */
+.time-label {
+    color: var(--text-muted) !important;
+}
+
+/* Time values */
+.time-value {
+    color: var(--text-highlight) !important;
+}
+
+.time-value-secondary {
+    color: var(--text-secondary) !important;
+}
+
+/* Countdown */
+#countdown-timer {
+    color: var(--text-highlight) !important;
+}
+
+.countdown-label {
+    color: var(--text-muted) !important;
+}
+
+
+/* ============================================================================
+   10. RACE CALENDAR LIST
+   ============================================================================ */
+
+.calendar-section {
+    background-color: var(--bg-panel) !important;
+}
+
+.calendar-title {
+    color: var(--text-muted) !important;
+    background-color: var(--bg-panel) !important;
+}
+
+/* Race list item */
+.race-item {
+    background-color: var(--bg-panel) !important;
+    border-color: var(--border-color) !important;
+}
+
+/* Highlighted (next) race */
+.race-item-next {
+    background-color: var(--bg-panel-alt) !important;
+    border-color: var(--accent-red) !important;
+}
+
+/* Date */
+.race-month {
+    color: var(--text-secondary) !important;
+}
+
+.race-day {
+    color: var(--text-highlight) !important;
+}
+
+/* Race info */
+.race-name {
+    color: var(--text-highlight) !important;
+}
+
+.circuit-name {
+    color: var(--text-muted) !important;
+}
+
+
+/* ============================================================================
+   11. DRIVER ACCORDION (List of Drivers)
+   ============================================================================ */
+
+/* Each driver row container */
+.driver-row {
+    background-color: var(--bg-panel) !important;
+    border-color: var(--border-color) !important;
+}
+
+/* Clickable driver button */
+.driver-btn {
+    background-color: var(--bg-panel) !important;
+    transition: background-color 0.2s ease;
+    cursor: pointer;
+}
+
+.driver-btn:hover {
+    background-color: var(--bg-hover) !important;
+}
+
+/* Position number */
+.driver-position {
+    color: var(--text-muted) !important;
+    transition: color 0.2s ease;
+}
+
+.driver-btn:hover .driver-position {
+    color: var(--accent-red-light) !important;
+}
+
+/* Driver name */
+.driver-name {
+    color: var(--text-highlight) !important;
+}
+
+/* Team name */
+.driver-team {
+    color: var(--text-muted) !important;
+}
+
+/* Points */
+.driver-points {
+    color: var(--accent-red-light) !important;
+}
+
+.driver-points-label {
+    color: var(--text-muted) !important;
+}
+
+
+/* ============================================================================
+   12. DRIVER EXPANDED PANEL
+   ============================================================================ */
+
+.driver-panel {
+    background-color: var(--bg-panel) !important;
+    border-color: var(--border-color) !important;
+}
+
+/* Large number watermark */
+.driver-number-bg {
+    opacity: 0.15 !important;
+}
+
+/* Gradient over driver photo */
+.driver-photo-gradient {
+    background: linear-gradient(to top, var(--bg-panel), var(--bg-panel) 20%, transparent) !important;
+}
+
+/* Stat cards at bottom */
+.stat-card {
+    background-color: var(--bg-card) !important;
+    border-color: var(--border-light) !important;
+}
+
+.stat-label {
+    color: var(--text-secondary) !important;
+}
+
+.stat-value {
+    color: var(--text-highlight) !important;
+}
+
+
+/* ============================================================================
+   13. FORM ELEMENTS
+   ============================================================================ */
+
+/* Season dropdown */
+#season-select {
+    background-color: var(--bg-body) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+#season-select:focus {
+    outline: none !important;
+    border-color: var(--accent-red) !important;
+}
+
+#season-select option {
+    background-color: var(--bg-panel) !important;
+    color: var(--text-primary) !important;
+}
+
+
+/* ============================================================================
+   14. SETTINGS DROPDOWN
+   ============================================================================ */
+
+#settings-dropdown {
+    background-color: var(--bg-panel) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+#settings-dropdown a,
+#settings-dropdown button {
+    color: var(--text-primary) !important;
+}
+
+#settings-dropdown a:hover,
+#settings-dropdown button:hover {
+    background-color: var(--bg-hover) !important;
+}
+
+#dropdown-divider {
+    background-color: var(--border-color) !important;
+}
+
+
+/* ============================================================================
+   15. UTILITIES & ANIMATIONS
+   ============================================================================ */
+
+/* Loading spinner */
+.loader {
+    border: 3px solid var(--border-color) !important;
+    border-top: 3px solid var(--accent-red-light) !important;
+    border-radius: 50% !important;
+    width: 20px !important;
+    height: 20px !important;
+    animation: spin 1s linear infinite !important;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Loading text */
+#loading-text {
+    color: var(--text-secondary) !important;
+}
+
+/* Live pulse indicator */
+.live-dot {
+    background-color: var(--accent-red) !important;
+}
+
+.live-dot-ping {
+    background-color: var(--accent-red-light) !important;
+}
+
+/* Error messages */
+.error-text {
+    color: var(--accent-red-light) !important;
+}
+
+
+/* ============================================================================
+   16. SCROLLBARS
+   ============================================================================ */
+
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--accent-red);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-red-light);
+}
+
+
+/* ============================================================================
+   17. FUTURE: THEME TOGGLE SLIDER (Commented Out)
+   ============================================================================
+   
+   Uncomment this section when ready to implement light/dark theme switching.
+   Also uncomment corresponding HTML in index.php.
+   
+   ----------------------------------------------------------------------------
+
+.theme-toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 56px;
+    height: 28px;
+}
+
+.theme-toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.theme-toggle-switch .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--border-color);
+    transition: 0.3s;
+    border-radius: 28px;
+    overflow: hidden;
+}
+
+.theme-toggle-switch .slider:before {
+    position: absolute;
+    content: "";
+    height: 22px;
+    width: 22px;
+    left: 3px;
+    bottom: 3px;
+    background-color: var(--bg-panel);
+    transition: 0.3s;
+    border-radius: 50%;
+    z-index: 2;
+}
+
+.theme-toggle-switch input:checked + .slider {
+    background-color: #cbd5e1;
+}
+
+.theme-toggle-switch input:checked + .slider:before {
+    transform: translateX(28px);
+    background-color: #ffffff;
+}
+
+.theme-toggle-switch .slider-icon {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    z-index: 1;
+    transition: opacity 0.3s;
+}
+
+.theme-toggle-switch .slider-icon.sun {
+    left: 7px;
+    opacity: 0;
+}
+
+.theme-toggle-switch .slider-icon.moon {
+    right: 7px;
+    opacity: 1;
+}
+
+.theme-toggle-switch input:checked + .slider .slider-icon.sun {
+    opacity: 1;
+}
+
+.theme-toggle-switch input:checked + .slider .slider-icon.moon {
+    opacity: 0;
+}
+
+   ---------------------------------------------------------------------------- */
+
+
+/* ============================================================================
+   END OF STYLESHEET
+   ============================================================================ */
