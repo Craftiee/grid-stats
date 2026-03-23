@@ -1,8 +1,96 @@
 'use client';
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import NewsCarousel from '@/components/NewsCarousel';
+
+// ============================================================
+// WELCOME NOTIFICATION (once per session)
+// ============================================================
+
+function WelcomeNotification() {
+  const [visible, setVisible] = useState(false);
+  const [exiting, setExiting] = useState(false);
+
+  useEffect(() => {
+    if (sessionStorage.getItem('gridstats_welcomed')) return;
+    sessionStorage.setItem('gridstats_welcomed', '1');
+    // Small delay so the animation plays after mount
+    const t = setTimeout(() => setVisible(true), 300);
+    // Auto-dismiss after 12 seconds
+    const auto = setTimeout(() => dismiss(), 12000);
+    return () => { clearTimeout(t); clearTimeout(auto); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const dismiss = useCallback(() => {
+    setExiting(true);
+    setTimeout(() => setVisible(false), 400);
+  }, []);
+
+  if (!visible) return null;
+
+  return (
+    <div
+      className="fixed top-0 left-0 right-0 z-[9999] flex justify-center pointer-events-none"
+      style={{ paddingTop: '80px' }}
+    >
+      <div
+        className="pointer-events-auto rounded-xl shadow-2xl px-6 py-5 max-w-lg w-full mx-4 relative"
+        style={{
+          backgroundColor: '#18181b',
+          border: '1px solid #3f3f46',
+          animation: exiting ? 'welcomeSlideOut 0.4s ease-in forwards' : 'welcomeSlideIn 0.5s ease-out forwards',
+        }}
+      >
+        {/* Close button */}
+        <button
+          onClick={dismiss}
+          className="absolute top-3 right-3 hover:opacity-80 transition-opacity"
+          style={{ color: '#71717a' }}
+          aria-label="Close"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        {/* Content */}
+        <div className="flex items-start gap-4">
+          <div className="flex-shrink-0 mt-0.5">
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#dc262620' }}>
+              <svg className="w-5 h-5" style={{ color: '#dc2626' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
+              </svg>
+            </div>
+          </div>
+          <div>
+            <h4 className="text-sm font-bold tracking-wide" style={{ color: '#e2e8f0' }}>
+              Welcome to GRIDSTATS
+            </h4>
+            <p className="text-xs mt-1.5 leading-relaxed" style={{ color: '#a1a1aa' }}>
+              This site is currently under construction. Thank you for checking us out &mdash; we hope you enjoy the content!
+              If you have suggestions or run into any issues, reach out to us via{' '}
+              <span className="font-semibold" style={{ color: '#dc2626' }}>Contact Us</span>{' '}
+              in the menu. We&apos;d love to hear from you.
+            </p>
+          </div>
+        </div>
+
+        {/* Progress bar for auto-dismiss */}
+        <div className="mt-4 h-0.5 rounded-full overflow-hidden" style={{ backgroundColor: '#27272a' }}>
+          <div
+            className="h-full rounded-full"
+            style={{
+              backgroundColor: '#dc2626',
+              animation: 'welcomeProgress 12s linear forwards',
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // ============================================================
 // CONSTANTS (from app.js)
@@ -43,7 +131,7 @@ const teamImageMap: Record<string, string> = {
   'ferrari': 'Ferrari', 'haas': 'Haas', 'sauber': 'Kick',
   'mclaren': 'McLaren', 'mercedes': 'Merc', 'rb': 'RBF1',
   'alphatauri': 'RBF1', 'red_bull': 'RedBull', 'williams': 'Williams',
-  'cadillac': 'Cadillac_', 'audi': 'Audi',
+  'cadillac': 'Cadillac', 'audi': 'Audi',
 };
 
 const photoOffsets: Record<string, string> = {
@@ -183,6 +271,24 @@ function PodiumPosition({ driver, position }: { driver: any; position: number })
 }
 
 // ============================================================
+// HELPERS
+// ============================================================
+
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const secs = Math.floor(diff / 1000);
+  if (secs < 60) return 'just now';
+  const mins = Math.floor(secs / 60);
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 30) return `${days}d ago`;
+  const months = Math.floor(days / 30);
+  return `${months}mo ago`;
+}
+
+// ============================================================
 // MAIN DASHBOARD PAGE
 // ============================================================
 
@@ -207,6 +313,21 @@ export default function DashboardPage() {
   const [countdown, setCountdown] = useState({ days: '00', hours: '00', mins: '00', secs: '00' });
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const yearDropdownRef = useRef<HTMLDivElement>(null);
+  const [recentThreads, setRecentThreads] = useState<any[]>([]);
+
+  // ── Fetch recent forum activity (poll every 5s) ──
+  useEffect(() => {
+    let active = true;
+    async function fetchRecent() {
+      try {
+        const res = await fetch('/api/forum/recent');
+        if (res.ok && active) setRecentThreads(await res.json());
+      } catch { /* ignore */ }
+    }
+    fetchRecent();
+    const id = setInterval(fetchRecent, 5000);
+    return () => { active = false; clearInterval(id); };
+  }, []);
 
   // ── Fetch on mount and year change ──
   useEffect(() => {
@@ -981,6 +1102,7 @@ export default function DashboardPage() {
 
   return (
     <div className="container mx-auto mt-6 px-4 flex-grow pb-6">
+      <WelcomeNotification />
       <div className="flex flex-col md:flex-row gap-4">
 
         {/* ── LEFT COLUMN: Constructor Standings + News ── */}
@@ -1128,19 +1250,41 @@ export default function DashboardPage() {
             </div>
           </div>
 
+          {/* Ad Placeholder */}
+          <div style={{ height: '250px' }} />
+
           {/* Recent Forum Panel */}
           <div className="forum-panel flex-col z-20 rounded-xl" style={{ backgroundColor: '#15151a', border: '1px solid #3f3f46' }}>
             <div className="px-3 pt-3 pb-2 flex justify-between items-center">
-              <h3 className="text-xs font-bold tracking-widest uppercase" style={{ color: '#e2e8f0' }}>Recent Posts</h3>
-              <a href="#" className="text-[10px] font-bold uppercase tracking-wide hover:underline" style={{ color: '#dc2626' }}>View Forum →</a>
+              <h3 className="text-xs font-bold tracking-widest uppercase" style={{ color: '#e2e8f0' }}>Recent Activity</h3>
+              <a href="/forum" className="text-[10px] font-bold uppercase tracking-wide hover:underline" style={{ color: '#dc2626' }}>View Forum →</a>
             </div>
-            <div id="forum-container" className="p-3 pt-0">
-              <div className="rounded-lg p-6 text-center" style={{ backgroundColor: '#1a1a1f', border: '1px solid #27272a' }}>
-                <svg className="w-8 h-8 mx-auto mb-2" style={{ color: '#3f3f46' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
-                </svg>
-                <p className="text-xs font-medium" style={{ color: '#71717a' }}>No current posts</p>
-              </div>
+            <div id="forum-container" className="p-3 pt-0 flex flex-col gap-1.5">
+              {recentThreads.length > 0 ? recentThreads.map((t: any) => {
+                const activityDate = t.lastReplyAt || t.createdAt;
+                const ago = timeAgo(activityDate);
+                const name = t.user?.displayName || t.user?.username || 'Unknown';
+                return (
+                  <a
+                    key={t.id}
+                    href={`/forum/${t.id}`}
+                    className="block rounded-lg px-3 py-2 transition-colors hover:bg-white/5 no-underline"
+                    style={{ backgroundColor: '#1a1a1f', border: '1px solid #27272a' }}
+                  >
+                    <div className="text-sm font-bold truncate" style={{ color: '#e2e8f0' }}>{t.title}</div>
+                    <div className="text-[11px] mt-0.5" style={{ color: '#71717a' }}>
+                      {name} · {t.repliesCount} {t.repliesCount === 1 ? 'reply' : 'replies'} · {ago}
+                    </div>
+                  </a>
+                );
+              }) : (
+                <div className="rounded-lg p-6 text-center" style={{ backgroundColor: '#1a1a1f', border: '1px solid #27272a' }}>
+                  <svg className="w-8 h-8 mx-auto mb-2" style={{ color: '#3f3f46' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
+                  </svg>
+                  <p className="text-xs font-medium" style={{ color: '#71717a' }}>No current posts</p>
+                </div>
+              )}
             </div>
           </div>
 

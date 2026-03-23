@@ -47,15 +47,25 @@ function timeAgo(isoDate: string): string {
   return `${days} days ago`;
 }
 
+function isSafeExternalUrl(url: string): boolean {
+  try {
+    const u = new URL(url);
+    return u.protocol === 'http:' || u.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
 function normalizeUrl(raw: string): string {
   try {
     const u = new URL(raw);
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') return '';
     ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'].forEach((p) =>
       u.searchParams.delete(p),
     );
     return u.origin + u.pathname.replace(/\/+$/, '') + u.search;
   } catch {
-    return raw;
+    return '';
   }
 }
 
@@ -102,11 +112,13 @@ function parseBingRss(xml: string): ParsedArticle[] {
     const pubDate = $item.find('pubDate').text().trim();
     const domain = getDomain(url);
 
-    if (title && url) {
+    const normalizedUrl = normalizeUrl(url);
+    if (title && normalizedUrl) {
+      const fullImageUrl = imageUrl ? `${imageUrl}&w=700&h=400&c=7` : '';
       articles.push({
         title,
-        url: normalizeUrl(url),
-        imageUrl: imageUrl ? `${imageUrl}&w=700&h=400&c=7` : '',
+        url: normalizedUrl,
+        imageUrl: isSafeExternalUrl(fullImageUrl) ? fullImageUrl : '',
         sourceName: sourceName || domain,
         sourceFavicon: faviconUrl(domain),
         publishedAt: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
@@ -134,10 +146,11 @@ function parseGoogleRss(xml: string): ParsedArticle[] {
     const sourceName = sourceTag || (lastDash > 0 ? rawTitle.substring(lastDash + 3).trim() : '');
     const domain = getDomain(url);
 
-    if (title && url) {
+    const normalizedUrl = normalizeUrl(url);
+    if (title && normalizedUrl) {
       articles.push({
         title,
-        url: normalizeUrl(url),
+        url: normalizedUrl,
         imageUrl: '',
         sourceName: sourceName || domain,
         sourceFavicon: faviconUrl(domain),
@@ -178,11 +191,12 @@ function parseStandardRss(xml: string, feedName: string): ParsedArticle[] {
 
     const domain = getDomain(url);
 
-    if (title && url) {
+    const normalizedUrl = normalizeUrl(url);
+    if (title && normalizedUrl) {
       articles.push({
         title,
-        url: normalizeUrl(url),
-        imageUrl,
+        url: normalizedUrl,
+        imageUrl: isSafeExternalUrl(imageUrl) ? imageUrl : '',
         sourceName: feedName,
         sourceFavicon: faviconUrl(domain),
         publishedAt: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),

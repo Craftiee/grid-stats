@@ -412,6 +412,7 @@ model User {
   threads             ForumThread[] @relation("ThreadAuthor")
   lastRepliedThreads  ForumThread[] @relation("LastReplier")
   replies             ForumReply[]
+  votes               ForumVote[]
 
   @@index([username])
   @@index([email])
@@ -452,6 +453,7 @@ model ForumThread {
   repliesCount    Int       @default(0)
   pinned          Boolean   @default(false)
   locked          Boolean   @default(false)
+  edited          Boolean   @default(false)
   lastReplyAt     DateTime?
   lastReplyUserId Int?
   createdAt       DateTime  @default(now())
@@ -461,6 +463,7 @@ model ForumThread {
   user        User?         @relation("ThreadAuthor", fields: [userId], references: [id], onDelete: SetNull)
   lastReplier User?         @relation("LastReplier", fields: [lastReplyUserId], references: [id])
   replies     ForumReply[]
+  votes       ForumVote[]
 
   @@index([categoryId])
   @@index([pinned])
@@ -469,20 +472,42 @@ model ForumThread {
 }
 
 model ForumReply {
-  id        Int      @id @default(autoincrement())
-  threadId  Int
-  userId    Int?
-  content   String
-  edited    Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            Int       @id @default(autoincrement())
+  threadId      Int
+  userId        Int?
+  parentReplyId Int?
+  content       String
+  edited        Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  thread ForumThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
-  user   User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  thread       ForumThread  @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  user         User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  parentReply  ForumReply?  @relation("ReplyToReply", fields: [parentReplyId], references: [id], onDelete: Cascade)
+  childReplies ForumReply[] @relation("ReplyToReply")
+  votes        ForumVote[]
 
   @@index([threadId])
+  @@index([parentReplyId])
   @@index([createdAt])
   @@map("forum_replies")
+}
+
+model ForumVote {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  threadId  Int?
+  replyId   Int?
+  value     Int
+  createdAt DateTime @default(now())
+
+  user   User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  thread ForumThread?  @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  reply  ForumReply?   @relation(fields: [replyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, threadId])
+  @@unique([userId, replyId])
+  @@map("forum_votes")
 }
 
 // ─── SYNC METADATA ───────────────────────────────────────────

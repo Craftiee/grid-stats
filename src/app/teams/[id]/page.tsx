@@ -10,6 +10,7 @@ function createPrismaClient() {
   const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
   return new PrismaClient({ adapter });
 }
+// eslint-disable-next-line no-var
 declare global { var _prismaTeamDetail: PrismaClient | undefined; }
 const prisma = global._prismaTeamDetail ?? createPrismaClient();
 if (process.env.NODE_ENV !== 'production') global._prismaTeamDetail = prisma;
@@ -81,7 +82,6 @@ export default async function TeamPage({ params }: { params: { id: string } }) {
 
   // 5. Best season stats for the header
   const totalWins = seasonHistory.reduce((sum, s) => sum + (s.wins ?? 0), 0);
-  const totalPoles = seasonHistory.reduce((sum, s) => sum + (s.poles ?? 0), 0);
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#050505' }}>

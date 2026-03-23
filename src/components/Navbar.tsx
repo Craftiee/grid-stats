@@ -38,6 +38,7 @@ export default function Navbar() {
   if (pathname.startsWith('/news')) activePage = 'news';
   else if (pathname.startsWith('/drivers')) activePage = 'drivers';
   else if (pathname.startsWith('/teams')) activePage = 'teams';
+  else if (pathname.startsWith('/forum')) activePage = 'forum';
   else if (pathname === '/') activePage = 'dashboard';
 
   return (
@@ -141,7 +142,7 @@ export default function Navbar() {
             </Link>
 
             <Link
-              href="/"
+              href="/forum"
               className={`nav-btn${activePage === 'forum' ? ' active' : ''} px-4 py-2 text-sm font-semibold transition uppercase tracking-wide`}
             >
               Forum

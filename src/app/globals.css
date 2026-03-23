@@ -481,3 +481,17 @@ body {
 .expand-arrow {
     transition: transform 0.3s ease;
 }
+
+/* Welcome notification animations */
+@keyframes welcomeSlideIn {
+    from { opacity: 0; transform: translateY(-30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes welcomeSlideOut {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(-30px); }
+}
+@keyframes welcomeProgress {
+    from { width: 100%; }
+    to { width: 0%; }
+}
